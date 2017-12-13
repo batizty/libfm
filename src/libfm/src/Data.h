@@ -30,7 +30,10 @@
 
 typedef FM_FLOAT DATA_FLOAT;
 
-
+/**
+ * TODO MetaInfo
+ *
+ */
 
 class DataMetaInfo {
 	public:

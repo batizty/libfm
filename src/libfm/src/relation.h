@@ -29,6 +29,10 @@
 #include "../../fm_core/fm_model.h"
 #include "Data.h"
 
+/**
+ * TODO
+ *  Relation Data 的作用是
+ */
 class RelationData {
 	protected:
 		uint cache_size;

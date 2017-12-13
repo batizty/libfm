@@ -30,6 +30,9 @@
 
 #include "fm_learn_sgd.h"
 
+/**
+ * SGD learn method
+ */
 class fm_learn_sgd_element: public fm_learn_sgd {
 	public:
 		virtual void init() {

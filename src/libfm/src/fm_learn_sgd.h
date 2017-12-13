@@ -30,6 +30,10 @@
 #include "fm_learn.h"
 #include "../../fm_core/fm_sgd.h"
 
+/**
+ * SGD method
+ *
+ */
 class fm_learn_sgd: public fm_learn {
 	protected:
 		//DVector<double> sum, sum_sqr;

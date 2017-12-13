@@ -60,6 +60,44 @@
 using namespace std;
 
 int main(int argc, char **argv) { 
+    /**
+     * 整个项目的入口程序，主要实现了入口参数的处理
+     *
+     * 命令行参数如下：
+     *  task            r=regression c=classification 设置当前任务类型，要么是回归，要么是而分类
+     *  meta            有关数据的meta信息,描述数据组成
+     *  train           训练数据文件
+     *  test            测试数据文件，测试集合
+     *  validation      验证集合文件
+     *  out             输出预测值
+     *
+     *  dim             k0,k1,k2  k0是否加上偏置bias，k1使用1-way interactions, k2 number factor
+     *  regular         r0,r1,r2  正则化参数，r0 bias偏置的正则化参数，r1 -- L1  r2 -- L2
+     *  init_stdev      0.1 默认的w矩阵初始化值 ? TODO
+     *  iter            迭代次数，默认为100
+     *  learn_rate      学习率，初始学习率，默认为0.1，是否为动态学习率，这个实现略复杂
+     *                  learn_rate 多种实现，lr[0]为默认的学习率，后续会有变化
+     *
+     *  method          学习方法，有（SGD，SGDA，ALS，MCMC）默认为MCMC
+     *                  SGD 随机梯度下降
+     *                  SGDA
+     *                  ALS
+     *                  MCMC 马尔可夫
+     *                  TODO 了解下几个求解方法
+     *
+     *  verbosity       用来打开debug信息
+     *  rlog            RLog，作者为了完成任务，完成的一个log class
+     *  seed            随机数的种子
+     *
+     *  help            help信息
+     *
+     *  relation        数据之间关系描述文件，这个很多条数据，含义目前未知 TODO
+     *
+     *  cache_size      数据cache的大小，仅用于binary的数据格式，用于给数据进行cache，可以不用
+     *
+     *  save_model      FM model的存储文件
+     *  load_mode       FM model的存储文件，用于读取
+     */
  	
 	try {
 		CMDLine cmdline(argc, argv);
@@ -140,11 +178,22 @@ int main(int argc, char **argv) {
 
 		// (1) Load the data
 		std::cout << "Loading train...\t" << std::endl;
+        /**
+         * src/Data.h
+         * construct function
+         *  Data(cache, has_x, has_xt)
+         *  mcmc 没有x数据
+         *  sgd/sgda 没有xt数据（x的转置)
+         */
 		Data train(
 			cmdline.getValue(param_cache_size, 0),
 			! (!cmdline.getValue(param_method).compare("mcmc")), // no original data for mcmc
 			! (!cmdline.getValue(param_method).compare("sgd") || !cmdline.getValue(param_method).compare("sgda")) // no transpose data for sgd, sgda
 		);
+        /**
+         * Load train data from param_train_file
+         *  读入训练数据集合
+         */
 		train.load(cmdline.getValue(param_train_file));
 		if (cmdline.getValue(param_verbosity, 0) > 0) { train.debug(); }
 
@@ -173,6 +222,11 @@ int main(int argc, char **argv) {
 			}
 		}
 
+        /**
+         * Relational data
+         *  解析relation data
+         *  TODO relation data是用来做什么事情的
+         */
 		DVector<RelationData*> relation;
 		// (1.2) Load relational data
 		{
@@ -204,6 +258,10 @@ int main(int argc, char **argv) {
 		if (validation != NULL) {
 			num_all_attribute = std::max(num_all_attribute, (uint) validation->num_feature);
 		}
+        /**
+         * Meta data
+         * TODO
+         */ 
 		DataMetaInfo meta_main(num_all_attribute);
 		if (cmdline.hasParameter(param_meta_file)) {
 			meta_main.loadGroupsFromFile(cmdline.getValue(param_meta_file));
@@ -251,8 +309,11 @@ int main(int argc, char **argv) {
 			{ 
 				vector<int> dim = cmdline.getIntValues(param_dim);
 				assert(dim.size() == 3);
+                // K0 bias
 				fm.k0 = dim[0] != 0;
+                // K1 1-way interaction
 				fm.k1 = dim[1] != 0;
+                // K2 number_factor
 				fm.num_factor = dim[2];					
 			}			
 			fm.init();		
@@ -300,10 +361,30 @@ int main(int argc, char **argv) {
 			fml->task = 0;
 		} else if (! cmdline.getValue("task").compare("c") ) {
 			fml->task = 1;
-			for (uint i = 0; i < train.target.dim; i++) { if (train.target(i) <= 0.0) { train.target(i) = -1.0; } else {train.target(i) = 1.0; } }
-			for (uint i = 0; i < test.target.dim; i++) { if (test.target(i) <= 0.0) { test.target(i) = -1.0; } else {test.target(i) = 1.0; } }
+            // change label value from 0.0 and 1.0 to -1.0 and 1.0
+            // TODO ? WHY, just for computing grad easier
+			for (uint i = 0; i < train.target.dim; i++) { 
+                if (train.target(i) <= 0.0) { 
+                    train.target(i) = -1.0; 
+                } else {
+                    train.target(i) = 1.0; 
+                } 
+            }
+			for (uint i = 0; i < test.target.dim; i++) { 
+                if (test.target(i) <= 0.0) { 
+                    test.target(i) = -1.0; 
+                } else {
+                    test.target(i) = 1.0; 
+                } 
+            }
 			if (validation != NULL) {
-				for (uint i = 0; i < validation->target.dim; i++) { if (validation->target(i) <= 0.0) { validation->target(i) = -1.0; } else {validation->target(i) = 1.0; } }
+				for (uint i = 0; i < validation->target.dim; i++) { 
+                    if (validation->target(i) <= 0.0) { 
+                        validation->target(i) = -1.0; 
+                    } else {
+                        validation->target(i) = 1.0; 
+                    } 
+                }
 			}
 		} else {
 			throw "unknown task";
@@ -414,6 +495,9 @@ int main(int argc, char **argv) {
 		}	
 
 		// () learn		
+        /**
+         * Learning Function
+         */
 		fml->learn(train, test);
 
 		// () Prediction at the end  (not for mcmc and als)
