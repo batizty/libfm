@@ -26,6 +26,11 @@
 #include <vector>
 #include "util.h"
 
+/**
+ * 使用两个Map完成一个parse command line的流程
+ * 很简单但是很实用
+ */
+
 class CMDLine {
 	protected:
 		std::map< std::string, std::string > help;
