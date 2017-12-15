@@ -30,6 +30,17 @@
 
 #include "fm_model.h"
 
+/**
+ * fm 使用SGD进行参数更新的方案
+ *
+ *  multiplier should equal to Y(x) - Y
+ *  通过传递multipily来进行参数更新
+ *
+ * 更新的目标包括
+ *  W0 bias 参数
+ *  W1 线性部分参数
+ *  V 矩阵部分参数
+ */
 void fm_SGD(fm_model* fm, const double& learn_rate, sparse_row<DATA_FLOAT> &x, const double multiplier, DVector<double> &sum) {
 	if (fm->k0) {
 		double& w0 = fm->w0;
@@ -38,19 +49,36 @@ void fm_SGD(fm_model* fm, const double& learn_rate, sparse_row<DATA_FLOAT> &x, c
 	if (fm->k1) {
 		for (uint i = 0; i < x.size; i++) {
 			double& w = fm->w(x.data[i].id);
+            // same as logit
 			w -= learn_rate * (multiplier * x.data[i].value + fm->regw * w);
 		}
 	}	
 	for (int f = 0; f < fm->num_factor; f++) {
 		for (uint i = 0; i < x.size; i++) {
+            // v = V(f, j)
 			double& v = fm->v(f,x.data[i].id);
+            // grad = Sum( Sum(v(j, f) * x(j)) * x(j) - v * x(j) * x(j)  )
+            // ref libfm and fm paper
 			double grad = sum(f) * x.data[i].value - v * x.data[i].value * x.data[i].value; 
 			v -= learn_rate * (multiplier * grad + fm->regv * v);
 		}
 	}	
 }
-		
-void fm_pairSGD(fm_model* fm, const double& learn_rate, sparse_row<DATA_FLOAT> &x_pos, sparse_row<DATA_FLOAT> &x_neg, const double multiplier, DVector<double> &sum_pos, DVector<double> &sum_neg, DVector<bool> &grad_visited, DVector<double> &grad) {
+	
+/**
+ * 作用类似上面的函数
+ *
+ * FM 为什么需要分正负样本了来做这个事情 TODO
+ */
+void fm_pairSGD(fm_model* fm, 
+        const double& learn_rate, 
+        sparse_row<DATA_FLOAT> &x_pos,  // positive x
+        sparse_row<DATA_FLOAT> &x_neg,  // negative x
+        const double multiplier,        // Yhat - Y
+        DVector<double> &sum_pos,       // Sum of Positive TODO
+        DVector<double> &sum_neg,       // Sum of Negative TODO
+        DVector<bool> &grad_visited,    // grad记录
+        DVector<double> &grad) {
 	if (fm->k0) {
 		double& w0 = fm->w0;
 		w0 -= fm->reg0 * w0; // w0 should always be 0			
@@ -64,9 +92,11 @@ void fm_pairSGD(fm_model* fm, const double& learn_rate, sparse_row<DATA_FLOAT> &
 			grad(x_neg.data[i].id) = 0;
 			grad_visited(x_neg.data[i].id) = false;
 		}
+        // 正样本更新梯度
 		for (uint i = 0; i < x_pos.size; i++) {
 			grad(x_pos.data[i].id) += x_pos.data[i].value;
 		}
+        // 负样本更新梯度
 		for (uint i = 0; i < x_neg.size; i++) {
 			grad(x_neg.data[i].id) -= x_neg.data[i].value;
 		}
@@ -119,9 +149,6 @@ void fm_pairSGD(fm_model* fm, const double& learn_rate, sparse_row<DATA_FLOAT> &
 				grad_visited(attr_id) = true;
 			}
 		}	
-	
-
 	}
-			
 } 
 #endif /*FM_SGD_H_*/
