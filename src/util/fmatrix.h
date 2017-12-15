@@ -29,7 +29,10 @@
 #include <fstream>
 #include "../util/random.h"
 
-
+/**
+ * Large Scale Sparse Matrix
+ *  大尺度的稀疏矩阵处理
+ */
 
 const uint FMATRIX_EXPECTED_FILE_ID = 2;
 
@@ -43,14 +46,20 @@ template <typename T> struct sparse_row {
 	uint size;
 };
 
+/**
+ * meta information for file, this file will store an matrix
+ */
 struct file_header {
-	uint id;
-	uint float_size;
-	uint64 num_values;
-	uint num_rows;
-	uint num_cols;
+	uint id;            // matrix id
+	uint float_size;    // memory size
+	uint64 num_values;  // non zero value numbers
+	uint num_rows;      // number of rows
+	uint num_cols;      // number of cols
 }; 
 
+/**
+ * Large Sparse Matrix
+ */
 template <typename T> class LargeSparseMatrix {
 	public:
 		virtual void begin() = 0; // go to the beginning

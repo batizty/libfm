@@ -71,8 +71,14 @@ int main(int argc, char **argv) {
      *  validation      验证集合文件
      *  out             输出预测值
      *
-     *  dim             k0,k1,k2  k0是否加上偏置bias，k1使用1-way interactions, k2 number factor
-     *  regular         r0,r1,r2  正则化参数，r0 bias偏置的正则化参数，r1 -- L1  r2 -- L2
+     *  dim             k0,k1,k2
+     *                      k0是否加上偏置bias，
+     *                      k1使用1-way interactions, 
+     *                      k2 number factor
+     *  regular         r0,r1,r2  正则化参数，
+     *                      r0 bias偏置的正则化参数，
+     *                      r1 -- L1
+     *                      r2 -- L2
      *  init_stdev      0.1 默认的w矩阵初始化值 ? TODO
      *  iter            迭代次数，默认为100
      *  learn_rate      学习率，初始学习率，默认为0.1，是否为动态学习率，这个实现略复杂

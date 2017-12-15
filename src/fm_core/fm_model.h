@@ -35,22 +35,55 @@
 
 class fm_model {
 	private:
+        /**
+         * 这两个项目主要用来存储两个向量,为中间变量
+         * m_sum = Sum(v(j, f) * x(j))
+         * m_sum_sqr = Sum( v(j, f) * x(j) * v(j, f) * x(j) )
+         *  m_sum 
+         *  m_sum_sqr
+         */
 		DVector<double> m_sum, m_sum_sqr;
 	public:
+        /**
+         * w0 bias
+         * w 线性部分的参数
+         * v 组合的矩阵的参数
+         */
 		double w0;
 		DVectorDouble w;
 		DMatrixDouble v;
 
 	public:
 		// the following values should be set:
+        /**
+         * feature number
+         *  这个值是特征个数
+         */
 		uint num_attribute;
-		
+	
+        /**
+         * k0,k1,k2对应cmdline中的dim项目
+         * k0 是否有偏置 bias，如果k0 = 1，则加上偏置项目
+         * k1 是否使用w0, std::cout << "use w1=" << k1 << std::endl;
+         * k2 number_factor，这个为fm计算公式中的k，指明计算的层数
+         *  k2 is the dimensionality of the factorization and the model
+         *  parameters
+         */
 		bool k0, k1;
 		int num_factor;
-		
+	
+        /**
+         * 正则化参数，主要用于对
+         * w0，w，v的正则化
+         */
 		double reg0;
 		double regw, regv;
 		
+        /*
+         * 初始化 stdev mean
+         * stdev TODO
+         * mean TODO
+         */
 		double init_stdev;
 		double init_mean;
 		
@@ -104,6 +137,10 @@ double fm_model::predict(sparse_row<FM_FLOAT>& x) {
 	return predict(x, m_sum, m_sum_sqr);		
 }
 
+/**
+ * FM predict
+ * f(x) = W0 + W1 * Xt + Sum(k(1->k2), p(1->number_factor))
+ */
 double fm_model::predict(sparse_row<FM_FLOAT>& x, DVector<double> &sum, DVector<double> &sum_sqr) {
 	double result = 0;
 	if (k0) {	
@@ -119,9 +156,10 @@ double fm_model::predict(sparse_row<FM_FLOAT>& x, DVector<double> &sum, DVector<
 		sum(f) = 0;
 		sum_sqr(f) = 0;
 		for (uint i = 0; i < x.size; i++) {
+            // d = v(f, j) * x(j)
 			double d = v(f,x.data[i].id) * x.data[i].value;
-			sum(f) += d;
-			sum_sqr(f) += d*d;
+			sum(f) += d; sum(d)
+			sum_sqr(f) += d*d; // Sum(d * d)
 		}
 		result += 0.5 * (sum(f)*sum(f) - sum_sqr(f));
 	}
