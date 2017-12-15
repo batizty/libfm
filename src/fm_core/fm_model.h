@@ -80,9 +80,11 @@ class fm_model {
 		double regw, regv;
 		
         /*
-         * 初始化 stdev mean
-         * stdev TODO
-         * mean TODO
+         * 用于初始化v矩阵的参数
+         *  如果使用SGD方案，那么这里的两个参数就是标准正态分布的两个参数
+         *  N(mean, thta)
+         * stdev 正态分布的标准差(Standard Deviation) σ
+         * mean 正态分布的均值 E(X) μ
          */
 		double init_stdev;
 		double init_mean;
