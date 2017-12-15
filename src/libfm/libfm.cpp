@@ -79,7 +79,8 @@ int main(int argc, char **argv) {
      *                      r0 bias偏置的正则化参数，
      *                      r1 -- L1
      *                      r2 -- L2
-     *  init_stdev      0.1 默认的w矩阵初始化值 ? TODO
+     *  init_stdev      初始化V矩阵的参数
+     *                  在SGD中，使用的是标准正态分布，这里的参数为标准差σ
      *  iter            迭代次数，默认为100
      *  learn_rate      学习率，初始学习率，默认为0.1，是否为动态学习率，这个实现略复杂
      *                  learn_rate 多种实现，lr[0]为默认的学习率，后续会有变化
