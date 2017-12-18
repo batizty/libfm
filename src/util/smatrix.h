@@ -29,7 +29,9 @@
 #include <set>
 
 
-
+/**
+ * 稀疏的Vector使用Map来表示，目前使用int，实际上也限制了上限
+ */
 template <typename T> class SparseVector : public std::map<int,T> {
 	public:
 		T get(int x) {
@@ -43,6 +45,9 @@ template <typename T> class SparseVector : public std::map<int,T> {
 		void toStream(std::ostream &stream);
 };
 
+/**
+ * SparseMatrix 在SparseVector的基础上，加上了row的id
+ */
 template <typename T>  class SparseMatrix : public std::map<int, SparseVector<T> > { 
 	public:
 		T get(int x, int y) {
@@ -56,6 +61,10 @@ template <typename T>  class SparseMatrix : public std::map<int, SparseVector<T>
 		void toStream(std::ostream &stream);		
 		void fromFile(const std::string &filename);
 };
+
+/**
+ * SparseTensor 在SparseMatrix的基础上，加上了id
+ */
 template <typename T> class SparseTensor : public std::map<int, SparseMatrix<T> > {
 	public:
 		T get(int x, int y, int z) {
@@ -118,7 +127,9 @@ class SparseTensorBoolean : public std::map<int, SparseMatrixBoolean> {
 		void fromFile(const std::string &filename);		
 };
 
-
+/**
+ * 完成SparseVector的 toStream 方法
+ */
 template <typename T> void SparseVector<T>::toStream(std::ostream &stream) {
 	for(typename SparseVector<T>::const_iter it_cell = this->begin(); it_cell != this->end(); ++it_cell) {
 		stream << it_cell->first << " " << it_cell->second << std::endl;

@@ -32,6 +32,13 @@
 const uint DVECTOR_EXPECTED_FILE_ID = 1;
 const uint DMATRIX_EXPECTED_FILE_ID = 1001;
 
+/**
+ * Dense Matrix file header
+ *  id
+ *  type_size
+ *  row
+ *  col
+ */
 struct dmatrix_file_header {
 	uint id;
 	uint type_size;
@@ -42,7 +49,10 @@ struct dmatrix_file_header {
 template <typename T> class DMatrix {
 	public:
 		T** value;
-
+        
+        /**
+         * col_names feature的names
+         */
 		std::vector<std::string> col_names;
 		uint dim1, dim2;
 		
@@ -100,12 +110,20 @@ template <typename T> class DMatrix {
 			}
 			dim1 = p_dim1;
 			dim2 = p_dim2;
+            /**
+             * 为了matrix申请资源 
+             * value 为二维数组
+             *  value[i]为第一维度的index
+             */
 			MemoryLog::getInstance().logNew("dmatrix", sizeof(T*), dim1);
-			value = new T*[dim1];
+		    value = new T*[dim1];
 			MemoryLog::getInstance().logNew("dmatrix", sizeof(T), dim1*dim2);	
 			value[0] = new T[dim1 * dim2];
 			for (unsigned i = 1; i < dim1; i++) {
-				value[i] = value[0] + i * dim2;
+                /**
+                 * value[ i ] = index_0 + i * offset_of_col;
+                 */
+				value[i] = value[0] + i * dim2; 
 			}			
 			col_names.resize(dim2);
 			for (unsigned i = 1; i < dim2; i++) {
@@ -163,6 +181,12 @@ template <typename T> class DMatrix {
 				fh.num_rows = dim1;
 				fh.num_cols = dim2;
 				fh.type_size = sizeof(T);
+                /**
+                 * Store the matrix as char into an file,
+                 *  this could be save spaces
+                 *
+                 *  Save type reinterpret_cast<char*>
+                 */
 				out.write(reinterpret_cast<char*>(&fh), sizeof(fh));
 				for (uint i = 0; i < dim1; i++) {
 					out.write(reinterpret_cast<char*>(value[i]), sizeof(T)*dim2);
@@ -178,6 +202,9 @@ template <typename T> class DMatrix {
 			std::ifstream in(filename.c_str(), std::ios_base::in | std::ios_base::binary);
 			if (in.is_open()) {
 				dmatrix_file_header fh;
+                /**
+                 * Read as reinterpret_case<char*>
+                 */
 				in.read(reinterpret_cast<char*>(&fh), sizeof(fh));
 				assert(fh.id == DMATRIX_EXPECTED_FILE_ID);
 				assert(fh.type_size == sizeof(T));
@@ -208,6 +235,13 @@ template <typename T> class DMatrix {
    		
 };
 
+
+/**
+ * Same as DMatrix
+ *  类似 DMatrix 的解决方案
+ *
+ *  泛型解决方案
+ */
 template <typename T> class DVector {
 	public:
 		uint dim;
@@ -326,7 +360,9 @@ template <typename T> class DVector {
 		}
 };
 
-
+/**
+ * 矩阵在初始化的时候，使用正态分布进行随机初始化
+ */
 class DVectorDouble : public DVector<double> {
 	public:
 		void init_normal(double mean, double stdev) {	
