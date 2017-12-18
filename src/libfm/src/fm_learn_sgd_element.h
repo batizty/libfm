@@ -55,10 +55,14 @@ class fm_learn_sgd_element: public fm_learn_sgd {
 					double p = fm->predict(train.data->getRow(), sum, sum_sqr);
 					double mult = 0;
 					if (task == 0) {
+                        // regression
 						p = std::min(max_target, p);
 						p = std::max(min_target, p);
+                        // label - predication
 						mult = -(train.target(train.data->getRowIndex())-p);
 					} else if (task == 1) {
+                        // classification
+                        // sigmoid function
 						mult = -train.target(train.data->getRowIndex())*(1.0-1.0/(1.0+exp(-train.target(train.data->getRowIndex())*p)));
 					}				
 					SGD(train.data->getRow(), mult, sum);					

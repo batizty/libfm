@@ -31,8 +31,7 @@
 typedef FM_FLOAT DATA_FLOAT;
 
 /**
- * TODO MetaInfo
- *
+ * MetaInformation
  */
 
 class DataMetaInfo {
@@ -62,7 +61,10 @@ class DataMetaInfo {
 				num_attr_per_group(attr_group(i))++;
 			}
 		}
-	
+
+        /**
+         * output debug information
+         */
 		void debug() {
 			std::cout << "#attr=" << attr_group.dim << "\t#groups=" << num_attr_groups << std::endl;
 			for (uint g = 0; g < num_attr_groups; g++) {

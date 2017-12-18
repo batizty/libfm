@@ -28,9 +28,14 @@
 #include "../../util/rlog.h"
 #include "../../util/util.h"
 
-
+/**
+ * Base Learn Method
+ */
 class fm_learn {
 	protected:
+        /**
+         * FM Model sum, sum_sqr could be store as vector
+         */
 		DVector<double> sum, sum_sqr;
 		DMatrix<double> pred_q_term;
 		
@@ -49,7 +54,10 @@ class fm_learn {
 
 		const static int TASK_REGRESSION = 0;
 		const static int TASK_CLASSIFICATION = 1;
- 
+
+        /**
+         * validation data
+         */
 		Data* validation;	
 
 
@@ -101,6 +109,9 @@ class fm_learn {
 		}
 
 	protected:
+        /**
+         * predict in evaluation for classfication task
+         */
 		virtual double evaluate_classification(Data& data) {
 			int num_correct = 0;
 			double eval_time = getusertime();
@@ -117,8 +128,10 @@ class fm_learn {
 				log->log("time_pred", eval_time);
 			}
 
+            // count accuracy
 			return (double) num_correct / (double) data.data->getNumRows();
 		}
+
 		virtual double evaluate_regression(Data& data) {
 			double rmse_sum_sqr = 0;
 			double mae_sum_abs = 0;
